@@ -1,0 +1,186 @@
+.site-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px var(--gutter) 0;
+  pointer-events: none;
+}
+
+.site-header > * {
+  pointer-events: auto;
+}
+
+/* One material for every floating control: warm paper, a hairline, a soft shadow. No backdrop blur:
+   it would re-filter the canvas on every frame. */
+.pill {
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(239 237 232 / 0.88);
+  box-shadow:
+    0 0 0 1px rgb(18 18 17 / 0.07),
+    0 8px 28px -14px rgb(18 18 17 / 0.4);
+  color: var(--ink);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 16px 0 12px;
+  text-decoration: none;
+  transition: background-color 0.25s var(--ease-std);
+}
+
+.brand:hover {
+  background: rgb(246 244 240 / 0.96);
+}
+
+.brand svg {
+  transition: transform 0.6s var(--ease-out);
+}
+
+.brand:hover svg {
+  transform: rotate(-24deg);
+}
+
+.brand__name {
+  font: 400 23px/1 var(--font-display);
+  letter-spacing: -0.005em;
+  transform: translateY(1px);
+}
+
+.brand__tag {
+  margin-left: 3px;
+  padding-left: 11px;
+  border-left: 1px solid var(--rule);
+  font: 500 10.5px/1 var(--font-mono);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.nav {
+  display: flex;
+  align-items: stretch;
+  padding: 0 6px;
+}
+
+.nav__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 15px;
+  font: 500 14px/1 var(--font-sans);
+  color: var(--ink-2);
+  text-decoration: none;
+  transition: color 0.2s var(--ease-std);
+}
+
+.nav__link::before {
+  content: '';
+  position: absolute;
+  inset: 6px 2px;
+  border-radius: 999px;
+  background: rgb(18 18 17 / 0.07);
+  opacity: 0;
+  transform: scale(0.9);
+  transition:
+    opacity 0.25s var(--ease-std),
+    transform 0.35s var(--ease-out);
+}
+
+.nav__link:hover,
+.nav__link[aria-current] {
+  color: var(--ink);
+}
+
+.nav__link:hover::before,
+.nav__link[aria-current]::before {
+  opacity: 1;
+  transform: none;
+}
+
+.nav__link:focus-visible {
+  outline-offset: -4px;
+  border-radius: 999px;
+}
+
+.menu-btn {
+  display: none;
+  align-items: center;
+  gap: 10px;
+  padding: 0 18px 0 16px;
+  font: 500 14px/1 var(--font-sans);
+  cursor: pointer;
+}
+
+.menu-btn__bars {
+  position: relative;
+  width: 14px;
+  height: 8px;
+  border-block: 1.5px solid currentColor;
+  transition: transform 0.3s var(--ease-out);
+}
+
+.menu-btn[aria-expanded='true'] .menu-btn__bars {
+  transform: scaleY(0.2);
+}
+
+.menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: var(--gutter);
+  left: var(--gutter);
+  padding: 10px;
+  border-radius: 24px;
+  background: var(--paper-raised);
+  box-shadow:
+    0 0 0 1px rgb(18 18 17 / 0.07),
+    0 24px 60px -24px rgb(18 18 17 / 0.45);
+}
+
+.menu[hidden] {
+  display: none;
+}
+
+.menu nav {
+  display: grid;
+}
+
+.menu__link {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 0 14px;
+  border-radius: 16px;
+  font: 400 30px/1 var(--font-display);
+  text-decoration: none;
+  transition: background-color 0.2s var(--ease-std);
+}
+
+.menu__link:hover {
+  background: rgb(18 18 17 / 0.05);
+}
+
+@media (max-width: 719px) {
+  .nav {
+    display: none;
+  }
+  .menu-btn {
+    display: inline-flex;
+  }
+  .brand__tag {
+    display: none;
+  }
+}
+
+@media (min-width: 720px) {
+  .menu {
+    display: none;
+  }
+}

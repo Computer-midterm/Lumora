@@ -1,0 +1,14 @@
+node_modules/
+dist/
+coverage/
+*.log
+.DS_Store
+.env
+.env.*
+
+# Playwright output
+test-results/
+playwright-report/
+.tools/
+backups/
+assets-master/

@@ -1,0 +1,53 @@
+/* Design tokens. Palette: the footage's own paper and slate, ink black, and one signal accent
+   (vermilion, like an editor's correction pen) used only for status marks, focus and the reading trace. */
+:root {
+  --paper: #e7e4dd;
+  --paper-raised: #efede8;
+  --sheet: #f6f4f0;
+  --ink: #121211;
+  --ink-2: rgb(18 18 17 / 0.76);
+  --ink-3: rgb(18 18 17 / 0.64);
+  --rule: rgb(18 18 17 / 0.14);
+  --rule-strong: rgb(18 18 17 / 0.3);
+
+  --night: #0c0d0e;
+  --on-night: #ebe8e1;
+  --on-night-2: rgb(235 232 225 / 0.74);
+  --on-night-3: rgb(235 232 225 / 0.6);
+  --rule-night: rgb(235 232 225 / 0.16);
+
+  /* Closing section: frame 096's own backdrop, so its still melts into the page. */
+  --closing-bg: #a8aeaf;
+
+  --signal: #d4461f;
+  --signal-text: #a33316;
+
+  --font-display: 'Instrument Serif', 'Iowan Old Style', 'Times New Roman', serif;
+  --font-sans: 'Instrument Sans Variable', 'Instrument Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+  --gutter: clamp(20px, 4.4vw, 64px);
+  --maxw: 1312px;
+  --header-h: 72px;
+  --section-pad: clamp(96px, 13vh, 168px);
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-std: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Scroll sequence, in stage-heights: `len` of scrolling plays frame 001 -> 201; the dark section
+     starts rising `over` before the end and the stage stays pinned `flood` after it. */
+  --seq-len: 3;
+  --seq-over: 0.8;
+  --seq-flood: 0.4;
+
+  /* Stage height: the small viewport height on phones, so the pinned stage never jumps as browser bars move. */
+  --stage-h: 100vh;
+  /* Source frame aspect ratio, 854 / 480. */
+  --src-aspect: 1.779167;
+}
+
+@supports (height: 100svh) {
+  :root {
+    --stage-h: 100svh;
+  }
+}

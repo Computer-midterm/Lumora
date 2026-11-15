@@ -1,0 +1,576 @@
+/* =================================================================================================
+   Scroll sequence.
+
+   Default (no JavaScript, or reduced motion): a still first screen with frame 001, and the two
+   chapters in normal flow beneath it. Nothing is pinned.
+
+   html.motion (set before first paint when motion is welcome): a sticky stage inside a tall track.
+     track height = stage * (1 + len + flood)
+       - `len` stage-heights of scrolling map progress 0 -> 1 (frame 001 -> 201); `.seq__end` marks it;
+       - the dark section starts rising `over` stage-heights before the end, so the closing frames
+         play under rising ink instead of emptying out; the stage stays pinned `flood` past the end.
+
+   The media box (poster <img> + <canvas>, identical geometry) is placed by CSS alone, so frame 001
+   is laid out correctly on first paint. Its edges are masked ("melted") into the stage colour,
+   which JavaScript keeps equal to each frame's own backdrop colour.
+   ================================================================================================= */
+
+.seq {
+  --stage-bg: #dedad1;
+  position: relative;
+  background: var(--stage-bg);
+}
+
+.seq__track {
+  position: relative;
+  background: var(--stage-bg);
+}
+
+html.motion .seq__track {
+  height: calc(var(--stage-h) * (1 + var(--seq-len) + var(--seq-flood)));
+}
+
+.seq__end {
+  position: absolute;
+  top: calc(var(--stage-h) * var(--seq-len));
+  left: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+.seq__stage {
+  /* Media box height (landscape default: the full stage height). */
+  --box-h: 100cqh;
+  position: relative;
+  height: var(--stage-h);
+  overflow: hidden;
+  container-type: size;
+  background: var(--stage-bg);
+}
+
+html.motion .seq__stage {
+  position: sticky;
+  top: 0;
+}
+
+/* ---- media box ------------------------------------------------------------------------------------ */
+
+.seq__media {
+  /* Fractions of the box that melt into the stage colour on each side (read by JS as well). */
+  --melt-l: 0;
+  --melt-r: 0.24;
+  --melt-t: 0;
+  --melt-b: 0;
+  /* 1 = melted edges as composed; JS eases it to 0 as the image goes full-bleed. */
+  --melt-k: 1;
+  /* Largest scale the full-bleed glide may use. */
+  --immerse-max: 1.5;
+
+  --box-w: calc(var(--box-h) * var(--src-aspect));
+  /* Where the subject (54% across the frame) lands: the middle of the space left of the text column. */
+  --anchor-x: calc((100cqw - var(--col-w) - var(--gutter)) * 0.5);
+
+  position: absolute;
+  top: 0;
+  left: calc(var(--anchor-x) - var(--box-w) * 0.54);
+  width: var(--box-w);
+  height: var(--box-h);
+  transform-origin: 50% 50%;
+  will-change: transform;
+
+  --mr: calc(var(--melt-r) * var(--melt-k));
+  --ml: calc(var(--melt-l) * var(--melt-k));
+  --mask-x: linear-gradient(
+    to right,
+    transparent 0,
+    #000 calc(var(--ml) * 100%),
+    #000 calc((1 - var(--mr)) * 100%),
+    rgb(0 0 0 / 0.74) calc((1 - var(--mr) * 0.66) * 100%),
+    rgb(0 0 0 / 0.3) calc((1 - var(--mr) * 0.33) * 100%),
+    transparent 100%
+  );
+  -webkit-mask-image: var(--mask-x);
+  mask-image: var(--mask-x);
+}
+
+.seq__poster,
+.seq__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.seq__poster {
+  object-fit: fill; /* the box already has the frame's exact aspect ratio */
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Hidden until the first frame is drawn on it (an alpha:false canvas starts black). */
+.seq__canvas {
+  visibility: hidden;
+}
+
+.seq__canvas.is-live {
+  visibility: visible;
+}
+
+/* ---- HUD: frame counter (pinned with the stage) ----------------------------------------------- */
+
+.seq__hud {
+  display: none;
+  position: absolute;
+  right: var(--gutter);
+  bottom: 26px;
+  z-index: 2;
+  align-items: center;
+  gap: 12px;
+  font: 500 11.5px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+.seq__count-total {
+  color: var(--ink-3);
+}
+
+.seq__meter {
+  width: 56px;
+  height: 1.5px;
+  background: var(--rule-strong);
+  overflow: hidden;
+}
+
+.seq__meter > span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
+  transform: scaleX(0);
+  transform-origin: 0 50%;
+}
+
+/* ---- hero copy ------------------------------------------------------------------------------------ */
+
+/* Note: nothing between .seq__track and .hero__title may create a stacking context (no z-index,
+   transform, opacity or filter): the headline blends with the artwork painted beneath it. */
+
+.seq__steps {
+  pointer-events: none;
+}
+
+.seq__steps > * > * {
+  pointer-events: auto;
+}
+
+.hero__title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: var(--h1-size);
+  line-height: 0.92;
+  letter-spacing: -0.022em;
+  color: var(--ink);
+}
+
+.hero__title em {
+  font-style: italic;
+}
+
+.hero__line {
+  display: block;
+  overflow: hidden;
+  /* room for descenders and the italic overhang inside the reveal slot */
+  padding: 0.04em 0.06em 0.14em 0;
+  margin: -0.04em 0 -0.14em;
+}
+
+.hero__line-inner {
+  display: inline-block;
+}
+
+.status-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 500 12px/1.3 var(--font-mono);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.status-line__text {
+  text-wrap: balance;
+}
+
+.status-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 0 3px rgb(212 70 31 / 0.16);
+}
+
+.hero__sub {
+  margin-top: clamp(14px, 2.2vh, 22px);
+  font-size: clamp(1rem, 0.94rem + 0.3vw, 1.2rem);
+  line-height: 1.5;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.hero .actions {
+  margin-top: clamp(18px, 3vh, 30px);
+}
+
+.hero__cue {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font: 500 11.5px/1 var(--font-mono);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.kicker {
+  margin-bottom: 16px;
+  font: 500 12px/1.2 var(--font-mono);
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.chapter__line {
+  font: 400 var(--chapter-size) / 1 var(--font-display);
+  letter-spacing: -0.014em;
+  text-wrap: balance;
+}
+
+/* =================================================================================================
+   Landscape: artwork left, deck in a right column, headline large across the bottom.
+   ================================================================================================= */
+
+@media (min-aspect-ratio: 5/4) {
+  .seq {
+    --col-w: clamp(300px, 33vw, 520px);
+    /* Two lines; the second ("Know what actually works.") must fit the width: ~10.9em wide. */
+    --h1-size: min(8vw, 17vh, 9.4rem);
+    --chapter-size: clamp(2.1rem, 3.5vw, 3.7rem);
+    --hero-pad-b: 70px;
+  }
+
+  .seq__media {
+    --col-w: clamp(300px, 33cqw, 520px);
+  }
+
+  .hero {
+    position: absolute;
+    inset: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    height: var(--stage-h);
+    padding: 0 var(--gutter) var(--hero-pad-b);
+  }
+
+  .hero__title {
+    white-space: nowrap;
+  }
+
+  /* The headline takes the stage's own colour and is difference-blended over the artwork:
+     near-black on the backdrop, backdrop-coloured where it crosses ink. */
+  @supports (mix-blend-mode: difference) {
+    .hero__title,
+    .hero__cue {
+      color: var(--stage-bg);
+      mix-blend-mode: difference;
+    }
+  }
+
+  .hero__br {
+    display: none;
+  }
+
+  /* Deck: beside the headline's first line, above its second. */
+  .hero__deck {
+    position: absolute;
+    right: var(--gutter);
+    bottom: calc(var(--hero-pad-b) + var(--h1-size) * 0.92 + clamp(14px, 2.6vh, 30px));
+    width: var(--col-w);
+  }
+
+  .hero__cue {
+    position: absolute;
+    left: var(--gutter);
+    bottom: 26px;
+  }
+
+  html.motion .seq__hud {
+    display: flex;
+  }
+
+  html.motion .seq__steps {
+    position: absolute;
+    inset: 0;
+  }
+
+  html.motion .chapter {
+    position: absolute;
+    right: var(--gutter);
+    width: var(--col-w);
+    top: calc(var(--p) * var(--stage-h) * var(--seq-len) + var(--stage-h) * 0.5);
+    transform: translateY(-50%);
+  }
+
+  /* Paper-coloured halo keeps the chapter crisp if a stray strand drifts behind it. */
+  .chapter > * {
+    text-shadow:
+      0 0 22px var(--stage-bg),
+      0 0 8px var(--stage-bg);
+  }
+
+  /* Still layout: chapters sit in a row under the first screen. */
+  html:not(.motion) .seq__steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--gutter);
+    padding: var(--section-pad) var(--gutter);
+  }
+}
+
+/* Short landscape screens (small laptops, phones on their side). */
+@media (min-aspect-ratio: 5/4) and (max-height: 640px) {
+  .seq {
+    --h1-size: min(8vw, 15vh);
+    --hero-pad-b: 52px;
+  }
+  .hero__sub {
+    font-size: 0.96rem;
+  }
+  .hero__cue {
+    bottom: 18px;
+  }
+  .seq__hud {
+    bottom: 18px;
+  }
+}
+
+@media (min-aspect-ratio: 5/4) and (max-height: 470px) {
+  .hero__sub {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+  }
+  .hero__cue {
+    display: none;
+  }
+  .seq {
+    --hero-pad-b: 28px;
+  }
+}
+
+/* =================================================================================================
+   Portrait: artwork on top, copy beneath it. With motion, the copy scrolls *under* the pinned image
+   and dissolves into a paper backplate, so the animation is never covered.
+   ================================================================================================= */
+
+@media (max-aspect-ratio: 5/4) {
+  :root {
+    --seq-len: 2.6;
+  }
+
+  .seq {
+    --h1-size: clamp(2.5rem, 11vw, 4.6rem);
+    --chapter-size: clamp(2rem, 8.4vw, 3.2rem);
+    /* Same geometry as the media box below, in viewport units, for positioning the copy. */
+    --p-box-h: min(calc(100vw * 1.5 / var(--src-aspect)), calc(var(--stage-h) * 0.54));
+    --p-box-top: calc(var(--stage-h) * 0.05);
+  }
+
+  .seq__stage {
+    --box-h: min(calc(100cqw * 1.5 / var(--src-aspect)), 54cqh);
+    --box-top: 5cqh;
+  }
+
+  .seq__media {
+    --melt-l: 0.08;
+    --melt-r: 0.08;
+    --melt-t: 0.16;
+    --melt-b: 0.26;
+    --immerse-max: 1.32;
+    top: var(--box-top);
+    left: calc(50cqw - var(--box-w) * 0.56);
+
+    --mt: calc(var(--melt-t) * var(--melt-k));
+    --mb: calc(var(--melt-b) * var(--melt-k));
+    --mask-y: linear-gradient(
+      to bottom,
+      transparent 0,
+      rgb(0 0 0 / 0.5) calc(var(--mt) * 50%),
+      #000 calc(var(--mt) * 100%),
+      #000 calc((1 - var(--mb)) * 100%),
+      rgb(0 0 0 / 0.72) calc((1 - var(--mb) * 0.66) * 100%),
+      rgb(0 0 0 / 0.28) calc((1 - var(--mb) * 0.33) * 100%),
+      transparent 100%
+    );
+    --mask-x: linear-gradient(to right, transparent 0, #000 calc(var(--ml) * 100%), #000 calc((1 - var(--mr)) * 100%), transparent 100%);
+    -webkit-mask-image: var(--mask-x), var(--mask-y);
+    mask-image: var(--mask-x), var(--mask-y);
+    -webkit-mask-composite: source-in;
+    mask-composite: intersect;
+  }
+
+  .hero {
+    padding: 0 var(--gutter) 40px;
+  }
+
+  .hero__deck {
+    margin-top: 22px;
+  }
+
+  .hero__sub {
+    max-width: 40ch;
+  }
+
+  .hero__cue {
+    display: none;
+  }
+
+  .chapter {
+    padding-inline: var(--gutter);
+  }
+
+  /* ---- still layout: image, then copy, in normal flow ---- */
+  html:not(.motion) .seq__stage {
+    height: calc(var(--p-box-top) + var(--p-box-h));
+    container-type: inline-size;
+    --box-h: var(--p-box-h);
+    --box-top: var(--p-box-top);
+  }
+
+  html:not(.motion) .seq__media {
+    left: calc(50% - var(--box-w) * 0.56);
+  }
+
+  html:not(.motion) .hero {
+    padding-top: 28px;
+  }
+
+  html:not(.motion) .chapter {
+    padding-block: 28px;
+  }
+
+  html:not(.motion) .seq__steps {
+    padding-bottom: calc(var(--section-pad) * 0.6);
+  }
+
+  /* ---- motion layout ---- */
+  html.motion .seq__stage {
+    z-index: 3;
+    background: transparent;
+    pointer-events: none;
+  }
+
+  /* Backplate behind the image: copy sliding up fades into paper here instead of mixing with the
+     image's semi-transparent lower edge. */
+  html.motion .seq__stage::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: calc(var(--box-top) + var(--box-h) + 40px);
+    background: linear-gradient(to bottom, var(--stage-bg) calc(100% - 40px), transparent);
+  }
+
+  html.motion .seq__steps {
+    position: absolute;
+    inset: 0;
+  }
+
+  html.motion .hero {
+    position: absolute;
+    top: calc(var(--p-box-top) + var(--p-box-h) + 36px);
+    left: 0;
+    right: 0;
+  }
+
+  html.motion .chapter {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(var(--p) * var(--stage-h) * var(--seq-len) + var(--stage-h) * 0.72);
+    transform: translateY(-50%);
+  }
+}
+
+/* Tablets in portrait: the box is width-limited there, so cap its height to keep the main button on the first screen. */
+@media (max-aspect-ratio: 5/4) and (min-width: 600px) {
+  .seq {
+    --p-box-h: min(calc(100vw * 1.5 / var(--src-aspect)), calc(var(--stage-h) * 0.44));
+  }
+  .seq__stage {
+    --box-h: min(calc(100cqw * 1.5 / var(--src-aspect)), 44cqh);
+  }
+  .hero__sub {
+    max-width: 46ch;
+  }
+}
+
+/* Short phones (browser bars showing): smaller image so the headline and main button fit the first screen. */
+@media (max-aspect-ratio: 5/4) and (max-height: 760px) {
+  .seq {
+    --p-box-h: min(calc(100vw * 1.5 / var(--src-aspect)), calc(var(--stage-h) * 0.38));
+    --h1-size: clamp(2.2rem, 9.6vw, 3.6rem);
+  }
+  .seq__stage {
+    --box-h: min(calc(100cqw * 1.5 / var(--src-aspect)), 38cqh);
+  }
+  .hero__deck {
+    margin-top: 16px;
+  }
+  .hero__sub {
+    margin-top: 12px;
+    font-size: 0.98rem;
+  }
+  .hero .actions {
+    margin-top: 18px;
+  }
+}
+
+/* Very short phones (e.g. 320x568). */
+@media (max-aspect-ratio: 5/4) and (max-height: 600px) {
+  .seq {
+    --p-box-h: min(calc(100vw * 1.5 / var(--src-aspect)), calc(var(--stage-h) * 0.31));
+    --h1-size: 2.05rem;
+  }
+  .seq__stage {
+    --box-h: min(calc(100cqw * 1.5 / var(--src-aspect)), 31cqh);
+  }
+  .status-line {
+    font-size: 11px;
+  }
+  .hero__sub {
+    font-size: 0.9rem;
+  }
+  .hero .actions {
+    margin-top: 14px;
+  }
+}
+
+@media (max-aspect-ratio: 5/4) and (max-width: 480px) {
+  .hero .actions {
+    gap: 4px 24px;
+  }
+}
+
+/* Forced colours (Windows high contrast): no blending tricks, plain system text. */
+@media (forced-colors: active) {
+  .hero__title,
+  .hero__cue {
+    color: CanvasText;
+    mix-blend-mode: normal;
+  }
+}

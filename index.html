@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="description" content="Lumora (working name) is an AI app builder in early development, designed around approved requirements, independent testing and honest, evidence-based progress reports." />
+    <meta name="color-scheme" content="light" />
+    <meta name="theme-color" content="#dedad1" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!--poster-preload-->
+    <title>Lumora — Build with AI. Know what actually works.</title>
+    <style>
+      /* First paint: the page colour equals frame 001's backdrop, so there is never a white flash. */
+      html { background: #dedad1; }
+    </style>
+    <script>
+      // Before first paint: `js` = scripting works; `motion` = scroll-driven motion is welcome.
+      // Without them the page uses its still, in-flow layout (no pinning, everything readable).
+      (function (d) {
+        d.classList.add('js');
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) d.classList.add('motion');
+      })(document.documentElement);
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

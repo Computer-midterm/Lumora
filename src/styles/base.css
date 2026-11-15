@@ -1,0 +1,332 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: #dedad1;
+  color: var(--ink);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  margin: 0;
+  overflow-x: clip;
+  font-family: var(--font-sans);
+  font-size: 17px;
+  line-height: 1.55;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+p,
+ol,
+ul {
+  margin: 0;
+}
+
+ol,
+ul {
+  padding: 0;
+  list-style: none;
+}
+
+img,
+canvas,
+svg {
+  display: block;
+}
+
+a {
+  color: inherit;
+}
+
+::selection {
+  background: rgb(212 70 31 / 0.24);
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+main:focus {
+  outline: none;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: fixed;
+  top: 12px;
+  left: 12px;
+  z-index: 100;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper-raised);
+  font-weight: 500;
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform 0.2s var(--ease-std);
+}
+
+.skip-link:focus-visible {
+  transform: none;
+}
+
+.noscript {
+  position: relative;
+  z-index: 5;
+  max-width: 40ch;
+  margin: 40vh auto 0;
+  padding: 0 20px;
+  font: 18px/1.5 system-ui, sans-serif;
+}
+
+.wrap {
+  width: min(100% - 2 * var(--gutter), var(--maxw));
+  margin-inline: auto;
+}
+
+/* ---- type ------------------------------------------------------------------------------------ */
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+}
+
+.display em,
+.hero-title em {
+  font-style: italic;
+}
+
+.display--xl {
+  font-size: clamp(2.5rem, 1.1rem + 4.4vw, 5.6rem);
+  line-height: 0.98;
+}
+
+/* Two-tone headline: the second phrase steps back. */
+.display__soft {
+  color: var(--ink-3);
+}
+
+.label--night ~ .display .display__soft {
+  color: var(--on-night-3);
+}
+
+.display--lg {
+  font-size: clamp(2.4rem, 1.3rem + 3.4vw, 4.6rem);
+  line-height: 1;
+}
+
+.label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  margin-bottom: 28px;
+  font: 500 12px/1.2 var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.label::before {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: currentColor;
+}
+
+.label--night {
+  color: var(--on-night-3);
+}
+
+.lede {
+  max-width: 46ch;
+  margin-top: 28px;
+  font-size: clamp(1.05rem, 0.98rem + 0.3vw, 1.22rem);
+  line-height: 1.55;
+  color: var(--ink-2);
+  text-wrap: pretty;
+}
+
+.lede--night {
+  color: var(--on-night-2);
+}
+
+.index {
+  font: 500 12px/1 var(--font-mono);
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 0 11px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  color: var(--signal-text);
+  letter-spacing: 0.1em;
+}
+
+.badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+}
+
+/* ---- actions ---------------------------------------------------------------------------------- */
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 28px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  min-height: 48px;
+  padding: 0 6px 0 22px;
+  border-radius: 999px;
+  font: 500 15px/1 var(--font-sans);
+  letter-spacing: 0.005em;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.25s var(--ease-std),
+    transform 0.2s var(--ease-std);
+}
+
+.btn--primary {
+  background: var(--ink);
+  color: var(--paper-raised);
+}
+
+.btn--primary:hover {
+  background: #2b2b29;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn__icon {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--paper-raised);
+  color: var(--ink);
+  transition: transform 0.35s var(--ease-out);
+}
+
+.btn:hover .btn__icon {
+  transform: translateX(3px);
+}
+
+/* Quiet text link: hairline underline that draws to full ink on hover. */
+.link-quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  font: 500 15px/1 var(--font-sans);
+  color: var(--ink);
+  text-decoration: none;
+  background:
+    linear-gradient(currentColor, currentColor) 0 calc(50% + 0.95em) / 0% 1px no-repeat,
+    linear-gradient(var(--rule-strong), var(--rule-strong)) 0 calc(50% + 0.95em) / 100% 1px no-repeat;
+  transition: background-size 0.45s var(--ease-out);
+}
+
+.link-quiet:hover {
+  background-size:
+    100% 1px,
+    100% 1px;
+}
+
+/* ---- entrance (once, on load) ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-enter] {
+    animation: enter-rise 0.95s var(--ease-out) both;
+    animation-delay: calc(0.42s + var(--enter-step, 0) * 0.1s);
+  }
+  [data-enter='0'] {
+    animation-name: enter-fade;
+    animation-duration: 0.8s;
+    animation-delay: 0s;
+  }
+  [data-enter='2'] {
+    --enter-step: 1;
+  }
+  [data-enter='3'] {
+    --enter-step: 2;
+  }
+  [data-enter='4'] {
+    --enter-step: 4;
+    animation-name: enter-fade;
+  }
+
+  /* Headline: each line rises out of its own slot. */
+  .hero__line-inner {
+    animation: line-rise 1.15s var(--ease-out) both;
+    animation-delay: calc(0.12s + var(--i, 0) * 0.11s);
+  }
+}
+
+@keyframes enter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+
+@keyframes enter-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes line-rise {
+  from {
+    transform: translateY(108%);
+  }
+}
